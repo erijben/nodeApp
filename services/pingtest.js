@@ -10,6 +10,8 @@ const cron = require('node-cron');
 // Dans d'autres fichiers où vous en avez besoin
 const eventEmitter = require('./event-emitter');
 let io = null; // Initialisez io avec null
+
+
 // Créez une fonction pour définir io
 function setIO(socketIOInstance) {
   io = socketIOInstance;
@@ -21,7 +23,6 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true });
       const lastIntervention = await Intervention.findOne({ equipment: equipId }).sort({ date: -1 });
       const currentTime = new Date();
       let interventionId = null;
-  
       // Vérifiez si la dernière intervention est récente
       if (lastIntervention && (currentTime - lastIntervention.date) / 60000 <= 30) {
           interventionId = lastIntervention._id;
@@ -215,26 +216,50 @@ async function manualPingAndStore(req, res) {
 // Définition de la fonction pour vérifier l'état de l'équipement
 async function checkEquipmentStatus(equipId) {
   try {
+    const equipment = await EquipModel.findById(equipId);
     const status = await analysePingData(equipId);
-    console.log(`Status for equipment ID ${equipId}:`, status);
-    return status;
+    let message = ''; // Initialisez le message
+    const equipmentName = equipment.Nom; 
+
+    // Sélectionnez le message en fonction du statut
+    switch (status) {
+      case 'Dysfonctionnement':
+        message = 'Dysfonctionnement détecté par surveillance automatique. ';
+        break;
+      case 'Problème de réseau potentiel':
+        message = 'Problème de réseau potentiel détecté par surveillance automatique.';
+        break;
+      case 'En bon état':
+        message = 'Équipement en bon état confirmé par surveillance automatique.';
+        break;
+      default:
+        message = 'État indéterminé.';
+    }
+    
+     console.log(`Status for equipment ${equipmentName} (ID: ${equipId}):`, status);
+     return { status, message, equipmentName };
   } catch (error) {
     console.error(`Error when checking status for equipment ID ${equipId}:`, error);
     return 'Error when checking status';
-  }
+  
   }
 
+}
 
 // Planifiez une tâche cron pour vérifier l'état de tous les équipements toutes les 10 minutes
 cron.schedule('*/30 * * * *', async () => {
-  console.log('Vérification de l\'état de tous les équipements...');
-  const allEquipments = await EquipModel.find({}, '_id');
+  const allEquipments = await EquipModel.find();
   for (const equip of allEquipments) {
-    if (equip._id) {
-      const status = await checkEquipmentStatus(equip._id);
-      console.log(`État de l'équipement ${equip._id}: ${status}`);
-    } else {
-      console.error('ID d\'équipement non défini:', equip);
+    const { status, message, equipmentName } = await checkEquipmentStatus(equip._id);
+    if (status === 'Dysfonctionnement') {
+      io.emit('newAlert', {
+        equipmentId: equip._id,
+        equipmentName: equipmentName,
+        status,
+        message: 'Léquipement est dysfonctionnel, une intervention est requise !',
+        alertType: 'Automatique',
+        timestamp: new Date()
+      });
     }
   }
 });
@@ -251,8 +276,6 @@ eventEmitter.on('evaluateEquipment', async (interventionId) => {
   }
 });
 
-
-// Ajoutez cette fonction pour évaluer l'état de l'équipement après chaque intervention
 async function evaluateEquipmentAfterIntervention(interventionId) {
   console.log(`Début de l'évaluation pour l'intervention: ${interventionId}`);
   try {
@@ -269,27 +292,34 @@ async function evaluateEquipmentAfterIntervention(interventionId) {
     const successfulPings = pingResults.filter(ping => ping.success).length;
     let status;
     let resolved;
+    let message; // Ajoutez une variable pour le message
 
+    // Sélectionnez le message en fonction du statut
     if (successfulPings === 0) {
       status = 'dysfonctionnel';
-      let resolved = false;
+      message = 'L\'équipement est encore en panne. autre intervention est requise ';
+      resolved = false;
     } else if (successfulPings < pingResults.length) {
       status = 'Problème de réseau';
+      message = 'Il y a un problème de réseau avec l\'équipement.';
     } else {
       status = 'En bon état';
+      message = 'L\'équipement est en bon état. intervention reussite';
       resolved = true;
     }
-    
+
 
     // Après avoir déterminé le statut, mettez à jour l'intervention
     await Intervention.findByIdAndUpdate(interventionId, { evaluated: true, status: status });
-
+    
     // Créez une alerte pour chaque statut évalué
     const newAlert = new Alert({
       equipmentId: equipmentId,
       interventionId: interventionId,
       status: status,
-      resolved: resolved
+      resolved: resolved,
+      alertType: 'Intervention',
+      message: message // Ajoutez le message correspondant au type d'alerte
     });
     await newAlert.save();
 
@@ -297,12 +327,16 @@ async function evaluateEquipmentAfterIntervention(interventionId) {
     console.log('Alerte sauvegardée pour le statut:', status);
     const fullAlert = await Alert.findById(savedAlert._id).populate('equipmentId', 'Nom');
 
+
     // Assurez-vous que `io` est défini avant de tenter de l'émettre
     if (io && fullAlert) {
       io.emit('newAlert', {
         ...fullAlert.toObject(),
-        equipmentName: fullAlert.equipmentId.Nom , // Emitting the name instead of or alongside the ID
+        equipmentName: fullAlert.equipmentId.Nom, // Emitting the name instead of or alongside the ID
+        alertType: 'Intervention',
         status: status,
+      
+        message: message, // Ajoutez le message à l'objet émis
         timestamp: new Date()
       });
       console.log('Alert emitted for status:', status);

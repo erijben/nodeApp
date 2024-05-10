@@ -19,7 +19,7 @@ module.exports = class InterventionService {
             console.log('Intervention created with ID:', response._id);
             setTimeout(() => {
                 eventEmitter.emit('evaluateEquipment', response._id);
-            }, 180000); // 3 minutes
+            }, 6000); // 3 minutes
             return response;
         } catch (error) {
             console.log('Error creating intervention:', error);

@@ -6,6 +6,7 @@ const http = require('http');
 const server = http.createServer(app); // Remplace "app" par ton application Express si tu en as une
 const socketIO = require('socket.io');
 const PDFDocument = require('pdfkit');
+const PdfPrinter = require('pdfmake');
 const fs = require('fs');
 const path = require('path');
 const cron = require('node-cron');
@@ -25,24 +26,10 @@ const Config = require('./models/config'); // Assurez-vous que le chemin est cor
 const eventEmitter = require('./services/event-emitter');
 const { evaluateEquipmentAfterIntervention } = require('./services/pingtest');
 const Alert = require('./models/Alert');
-
-
 const {
   generateInterventionReport, // Une seule fois
   createFullReport}= require('./services/reportService');
-  const saveDirectory = path.join(__dirname, 'reports');
-const filename = 'dashboard-report-' + Date.now() + '.pdf';
-const fullPath = path.join(saveDirectory, filename);
-// Assurez-vous que le répertoire existe
-if (!fs.existsSync(saveDirectory)) {
-  fs.mkdirSync(saveDirectory, { recursive: true });
-}
 
-// Créez ensuite le PDF avec PDFKit ou toute autre bibliothèque
-const doc = new PDFDocument();
-doc.pipe(fs.createWriteStream(fullPath));
-doc.text('Hello World!');
-doc.end();
 
   // Middleware to process JSON data
   app.use(express.json());
@@ -623,19 +610,7 @@ app.get('/pays', async (req, res) => {
   }
 });
 
-app.post('/api/reports/generateDashboardPDF', async (req, res) => {
-  const { startDate, endDate, equipments, data } = req.body;
-  const doc = new PDFDocument();
-  const filePath = `./path/to/reports/dashboard-report-${Date.now()}.pdf`;
 
-  doc.pipe(fs.createWriteStream(filePath));
-  doc.fontSize(25).text('Dashboard Report', 100, 100);
-  // More complex PDF generation logic here
-  // You can iterate over `data` to create tables and charts as needed
-  doc.end();
-
-  res.json({ pdfUrl: `http://localhost:3001/path/to/reports/${path.basename(filePath)}` });
-});
 
 /*const EMAIL_USERNAME = 'erijbenamor6@gmail.com'; // Remplacez par l'email réel
 const EMAIL_PASSWORD = 'jvpk gsdc nlhm ldbg';
@@ -775,6 +750,55 @@ app.get('/api/topologie', async (req, res) => {
     console.error('Error fetching network topology:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
+});
+
+
+// Setup pdfmake fonts
+const fonts = {
+  Roboto: {
+    normal: path.join(__dirname, 'node_modules/Roboto-Regular.ttf'),
+    bold: path.join(__dirname, 'node_modules/Roboto-Bold.ttf'),
+    italics: path.join(__dirname, 'node_modules/Roboto-Italic.ttf'),
+    bolditalics: path.join(__dirname, 'node_modules/Roboto-BoldItalic.ttf')
+  }
+};
+
+const printer = new PdfPrinter(fonts);
+const fontPath = path.join(__dirname, 'node_modules/Roboto-Regular.ttf');
+fs.access(fontPath, fs.constants.F_OK, (err) => {
+  if (err) {
+    console.error('Font file not found:', fontPath);
+  } else {
+    console.log('Font file exists:', fontPath);
+    // Initialize pdfmake with font, since file exists
+  }
+});
+app.post('/api/reports/generate-pdf', async (req, res) => {
+  const { startDate, endDate, equipmentIds } = req.body;
+
+  // Define document definition
+  const docDefinition = {
+    content: [
+      { text: 'Report', style: 'header' },
+      `Report from ${startDate} to ${endDate}`
+      // Include more content here such as tables or charts
+    ],
+    styles: {
+      header: {
+        fontSize: 18,
+        bold: true
+      }
+    }
+  };
+
+  const pdfDoc = printer.createPdfKitDocument(docDefinition);
+  const filePath = path.join(__dirname, 'output.pdf');
+  pdfDoc.pipe(fs.createWriteStream(filePath));
+  pdfDoc.end();
+
+  pdfDoc.on('finish', function() {
+    res.json({ url: `http://localhost:3001/reports/${path.basename(filePath)}` });
+  });
 });
 
 
