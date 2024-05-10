@@ -37,13 +37,10 @@ const {
 
 // Ajouter le middleware CORS à votre application Express
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  }
+  origin: 'https://react-app-delta-smoky.vercel.app', // Remplacer par l'URL de votre frontend
+  credentials: true, // Si vous utilisez des cookies/session
+  methods: 'GET,POST,PUT,DELETE', // Les méthodes HTTP que vous souhaitez autoriser
+  allowedHeaders: 'Content-Type,Authorization' // Les en-têtes spécifiques que vous souhaitez autoriser
 }));
 
 
