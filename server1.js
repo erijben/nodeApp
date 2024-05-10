@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const app = express(); // Initialize Express app
 const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
@@ -15,7 +16,7 @@ const equipRoute = require("./routes/equip.routes");
 const userRoute = require("./routes/user.routes");
 const authRoute = require("./routes/auth.routes");
 const configRoute = require("./routes/config.routes");
-const cors = require('cors');
+
 const pingAndStore = require('./services/pingtest');
 const interventionRoute = require("./routes/intervention.routes");
 const Intervention = require("./models/intervention")
@@ -35,17 +36,15 @@ const {
   // Middleware to process JSON data
   app.use(express.json());
 
+
+const allowedOrigins = '*';
+
 // Ajouter le middleware CORS à votre application Express
 app.use(cors({
-  origin: 'https://react-app-delta-smoky.vercel.app', // Remplacer par l'URL de votre frontend
-  credentials: true, // Si vous utilisez des cookies/session
-  methods: 'GET,POST,PUT,DELETE', // Les méthodes HTTP que vous souhaitez autoriser
-  allowedHeaders: 'Content-Type,Authorization' // Les en-têtes spécifiques que vous souhaitez autoriser
+  origin: allowedOrigins
 }));
 
 
-
-const allowedOrigins = '*';
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.get('/', (req, res) => {
   res.send('hello world');
