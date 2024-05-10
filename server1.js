@@ -33,11 +33,20 @@ const {
 
   // Middleware to process JSON data
   app.use(express.json());
+  const allowedOrigins = ['http://example1.com', 'http://example2.com'];
 
 // Ajouter le middleware CORS à votre application Express
 app.use(cors({
-  origin: 'http://localhost:3000'
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
 }));
+
+
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.get('/', (req, res) => {
