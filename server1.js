@@ -26,6 +26,7 @@ const Config = require('./models/config'); // Assurez-vous que le chemin est cor
 const eventEmitter = require('./services/event-emitter');
 const { evaluateEquipmentAfterIntervention } = require('./services/pingtest');
 const Alert = require('./models/Alert');
+
 const {
   generateInterventionReport, // Une seule fois
   createFullReport}= require('./services/reportService');
@@ -33,7 +34,6 @@ const {
 
   // Middleware to process JSON data
   app.use(express.json());
-  const allowedOrigins = ['http://example1.com', 'http://example2.com'];
 
 // Ajouter le middleware CORS à votre application Express
 app.use(cors({
@@ -48,6 +48,7 @@ app.use(cors({
 
 
 
+const allowedOrigins = '*';
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.get('/', (req, res) => {
   res.send('hello world');
@@ -812,6 +813,7 @@ app.post('/api/reports/generate-pdf', async (req, res) => {
 
 
 const port = process.env.PORT || 3001;
+
 // After setting up your server and io
 const io = socketIO(server, {
   cors: {
