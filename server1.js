@@ -293,6 +293,7 @@ app.get('/api/config/equip/:equipmentId', async (req, res) => {
   }
 });
 
+
 app.get('/api/pingResults/alert/:equipmentId', async (req, res) => {
   try {
     const { equipmentId } = req.params;
@@ -578,8 +579,6 @@ app.get('/pays', async (req, res) => {
   }
 });
 
-
-
 /*const EMAIL_USERNAME = 'erijbenamor6@gmail.com'; // Remplacez par l'email réel
 const EMAIL_PASSWORD = 'jvpk gsdc nlhm ldbg';
 
@@ -691,34 +690,6 @@ app.get('/api/pingResults', async (req, res) => {
   }
 });
 
-// À ajouter dans server1.js
-app.get('/api/topologie', async (req, res) => {
-  try {
-    const equipements = await Equip.find().populate('ConnecteA');
-    const topologie = equipements.map(equip => {
-      return {
-        id: equip._id,
-        nom: equip.Nom,
-        ip: equip.AdresseIp,
-        etat: equip.Etat,
-        Type:equip.Type,
-        connecteA: equip.ConnecteA.map(connexion => ({
-          id: connexion._id,
-          nom: connexion.Nom,
-          ip: connexion.AdresseIp,
-          etat: connexion.Etat,
-          Type:equip.Type,
-        })),
-        emplacement: equip.Emplacement,
-        port: equip.Port,
-      };
-    });
-    res.json(topologie);
-  } catch (error) {
-    console.error('Error fetching network topology:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
 
 const port = process.env.PORT || 3001;
 

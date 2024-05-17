@@ -75,7 +75,6 @@ module.exports = class equip {
                 Emplacement: req.body.Emplacement,
                 Etat: req.body.Etat,
                 RFID:req.body.RFID,
-               
             };
     
             console.log("Création d'un nouvel équipement :", comment); // Ajout du log
