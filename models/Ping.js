@@ -59,6 +59,7 @@ const pingResult = new Schema({
       message: 'Invalid date format for timestamp.',
     },
   },
+  
   success: {
     type: Boolean,
     default: false,

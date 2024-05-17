@@ -16,7 +16,6 @@ const equipRoute = require("./routes/equip.routes");
 const userRoute = require("./routes/user.routes");
 const authRoute = require("./routes/auth.routes");
 const configRoute = require("./routes/config.routes");
-
 const pingAndStore = require('./services/pingtest');
 const interventionRoute = require("./routes/intervention.routes");
 const Intervention = require("./models/intervention")
@@ -33,17 +32,14 @@ const {
   createFullReport}= require('./services/reportService');
 
 
-  // Middleware to process JSON data
+// Middleware to process JSON data
   app.use(express.json());
-
-
 const allowedOrigins = '*';
 
 // Ajouter le middleware CORS à votre application Express
 app.use(cors({
   origin: allowedOrigins
 }));
-
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.get('/', (req, res) => {
@@ -274,8 +270,6 @@ app.get('/api/pingResults/equip/:equipmentId', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
-
 
 
 app.get('/api/config/equip/:equipmentId', async (req, res) => {
@@ -567,38 +561,6 @@ app.post('/api/ttlStats', async (req, res) => {
   }
 });
 
-app.post('/api/ttlStats', async (req, res) => {
-  const { equipmentIds, startDate, endDate } = req.body;
-
-  if (!equipmentIds || equipmentIds.length === 0 || !startDate || !endDate) {
-    console.error('Missing parameters:', { equipmentIds, startDate, endDate });
-    return res.status(400).json({ error: 'Missing parameters' });
-  }
-
-  try {
-    const ttlData = await PingResult.find({
-      equipment: { $in: equipmentIds },
-      timestamp: { $gte: new Date(startDate), $lte: new Date(endDate) }
-    }).select('TTL');
-
-    let stats = { green: 0, orange: 0, red: 0 };
-    ttlData.forEach(result => {
-      if (result.TTL && result.TTL.length > 0) {
-        const averageTTL = result.TTL.reduce((sum, current) => sum + current, 0) / result.TTL.length;
-        if (averageTTL < 56) stats.green++;
-        else if (averageTTL <= 113) stats.orange++;
-        else stats.red++;
-      }
-    });
-
-    console.log('Computed stats:', stats);
-    res.json(stats);
-  } catch (error) {
-    console.error('Error fetching TTL stats:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
 
 app.get('/pays', async (req, res) => {
   try {
@@ -758,62 +720,12 @@ app.get('/api/topologie', async (req, res) => {
   }
 });
 
-
-// Setup pdfmake fonts
-const fonts = {
-  Roboto: {
-    normal: path.join(__dirname, 'node_modules/Roboto-Regular.ttf'),
-    bold: path.join(__dirname, 'node_modules/Roboto-Bold.ttf'),
-    italics: path.join(__dirname, 'node_modules/Roboto-Italic.ttf'),
-    bolditalics: path.join(__dirname, 'node_modules/Roboto-BoldItalic.ttf')
-  }
-};
-
-const printer = new PdfPrinter(fonts);
-const fontPath = path.join(__dirname, 'node_modules/Roboto-Regular.ttf');
-fs.access(fontPath, fs.constants.F_OK, (err) => {
-  if (err) {
-    console.error('Font file not found:', fontPath);
-  } else {
-    console.log('Font file exists:', fontPath);
-    // Initialize pdfmake with font, since file exists
-  }
-});
-app.post('/api/reports/generate-pdf', async (req, res) => {
-  const { startDate, endDate, equipmentIds } = req.body;
-
-  // Define document definition
-  const docDefinition = {
-    content: [
-      { text: 'Report', style: 'header' },
-      `Report from ${startDate} to ${endDate}`
-      // Include more content here such as tables or charts
-    ],
-    styles: {
-      header: {
-        fontSize: 18,
-        bold: true
-      }
-    }
-  };
-
-  const pdfDoc = printer.createPdfKitDocument(docDefinition);
-  const filePath = path.join(__dirname, 'output.pdf');
-  pdfDoc.pipe(fs.createWriteStream(filePath));
-  pdfDoc.end();
-
-  pdfDoc.on('finish', function() {
-    res.json({ url: `http://localhost:3001/reports/${path.basename(filePath)}` });
-  });
-});
-
-
 const port = process.env.PORT || 3001;
 
 // After setting up your server and io
 const io = socketIO(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "*",
     methods: ["GET", "POST"]
   }
 });
@@ -834,7 +746,6 @@ module.exports = { app, server, io };
 eventEmitter.on('newAlert', (alert) => {
   io.emit('newAlert', alert);
 });
-
 
 mongoose
   .connect('mongodb+srv://erijbenamor6:adminadmin@erijapi.9b6fc2g.mongodb.net/Node-API?retryWrites=true&w=majority')

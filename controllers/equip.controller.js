@@ -13,6 +13,7 @@ module.exports = class equip {
             res.status(500).json({ error: error });
         }
     }
+
     static async apiGetequipById(req, res, next) {
         try {
             let id = req.params.id || {};
@@ -27,8 +28,32 @@ module.exports = class equip {
             res.status(500).json({ error: error });
         }
     };
+     static async getEquipByRfid(RFID) {
+            try {
+                const equipByRfid = await equip.findOne({ RFID: RFID });
+                return equipByRfid;
+            } catch (error) {
+                console.log(`Could not fetch equip by RFID ${error}`);
+                throw error;
+            }
+        }
     
-    
+        static async apiGetEquipByRfid(req, res) {
+            try {
+              const rfid = req.params.rfid;
+              const equip = await equipService.getEquipByRfid(rfid);
+              if (equip) {
+                res.json({ success: true, equipment: equip });
+              } else {
+                res.json({ success: false, message: "Équipement non trouvé" });
+              }
+            } catch (error) {
+              console.error("Erreur lors de la recherche de l'équipement :", error);
+              res.status(500).json({ success: false, message: "Erreur du serveur" });
+            }
+          }
+
+          
     static async apiCreateequip(req, res, next) {
         try {
             const existingEquipByIp = await equipService.getEquipByIp(req.body.AdresseIp);
@@ -50,7 +75,6 @@ module.exports = class equip {
                 Emplacement: req.body.Emplacement,
                 Etat: req.body.Etat,
                 ConnecteA:req.body.ConnecteA,
-                Pays:req.body.Pays,
                 RFID:req.body.RFID,
                
             };

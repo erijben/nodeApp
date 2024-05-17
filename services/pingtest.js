@@ -9,9 +9,7 @@ const exec = util.promisify(child_process.exec);
 const cron = require('node-cron');
 // Dans d'autres fichiers où vous en avez besoin
 const eventEmitter = require('./event-emitter');
-let io = null; // Initialisez io avec null
-
-
+let io = null; // Initialisez io avec 
 // Créez une fonction pour définir io
 function setIO(socketIOInstance) {
   io = socketIOInstance;
@@ -154,9 +152,9 @@ async function analysePingData(equipId) {
   });
 
   if (consecutiveFailures >= 3) {
-    return 'Dysfonctionnement';
+    return 'dysfonctionnel';
   } else if (intermittentFailures > 0) {
-    return 'Problème de réseau potentiel';
+    return 'Problème de réseau';
   } else if (consecutiveSuccesses >= 4) {
     return 'En bon état';
   } else {
@@ -223,14 +221,14 @@ async function checkEquipmentStatus(equipId) {
 
     // Sélectionnez le message en fonction du statut
     switch (status) {
-      case 'Dysfonctionnement':
-        message = 'Dysfonctionnement détecté par surveillance automatique. ';
+      case 'dysfonctionnel':
+        message = 'dysfonctionnel  ';
         break;
-      case 'Problème de réseau potentiel':
-        message = 'Problème de réseau potentiel détecté par surveillance automatique.';
+      case 'Problème de réseau':
+        message = 'Problème de réseau potentiel';
         break;
       case 'En bon état':
-        message = 'Équipement en bon état confirmé par surveillance automatique.';
+        message = 'Équipement en bon état ';
         break;
       default:
         message = 'État indéterminé.';
@@ -243,7 +241,6 @@ async function checkEquipmentStatus(equipId) {
     return 'Error when checking status';
   
   }
-
 }
 
 // Planifiez une tâche cron pour vérifier l'état de tous les équipements toutes les 10 minutes
@@ -251,19 +248,17 @@ cron.schedule('*/30 * * * *', async () => {
   const allEquipments = await EquipModel.find();
   for (const equip of allEquipments) {
     const { status, message, equipmentName } = await checkEquipmentStatus(equip._id);
-    if (status === 'Dysfonctionnement') {
-      io.emit('newAlert', {
-        equipmentId: equip._id,
-        equipmentName: equipmentName,
-        status,
-        message: 'Léquipement est dysfonctionnel, une intervention est requise !',
-        alertType: 'Automatique',
-        timestamp: new Date()
-      });
-    }
+    await EquipModel.findByIdAndUpdate(equip._id, { Etat: status });
+    io.emit('newAlert', {
+      equipmentId: equip._id,
+      equipmentName: equipmentName,
+      status,
+      message,
+      alertType: 'Automatique',
+      timestamp: new Date()
+    });
   }
 });
-
 
 
 // L'écouteur d'événements 'evaluateEquipment'
@@ -322,6 +317,7 @@ async function evaluateEquipmentAfterIntervention(interventionId) {
       message: message // Ajoutez le message correspondant au type d'alerte
     });
     await newAlert.save();
+    await EquipModel.findByIdAndUpdate(equipmentId, { Etat: status });
 
     const savedAlert = await newAlert.save();
     console.log('Alerte sauvegardée pour le statut:', status);
@@ -332,11 +328,11 @@ async function evaluateEquipmentAfterIntervention(interventionId) {
     if (io && fullAlert) {
       io.emit('newAlert', {
         ...fullAlert.toObject(),
+        equipmentId: equipmentId,
         equipmentName: fullAlert.equipmentId.Nom, // Emitting the name instead of or alongside the ID
         alertType: 'Intervention',
         status: status,
-      
-        message: message, // Ajoutez le message à l'objet émis
+        message: `Intervention: ${equipmentName} - ${message}`, // Ajoutez le message à l'objet émis
         timestamp: new Date()
       });
       console.log('Alert emitted for status:', status);
@@ -347,7 +343,6 @@ async function evaluateEquipmentAfterIntervention(interventionId) {
     console.error(`Erreur lors de l'évaluation de l'équipement après l'intervention ${interventionId}:`, error);
   }
 }
-
 
 module.exports = {
   pingAndStore,

@@ -38,12 +38,7 @@ const interventionSchema = new mongoose.Schema({
         required: false, // Seulement pour les interventions de suivi
         default: null
       },
-    statut: {
-        type: String,
-        required: true,
-        enum: ['En cours', 'Réussie', 'Échec'],
-        default: 'En cours'
-    },
+
 });
 
 module.exports = mongoose.model('Intervention', interventionSchema);

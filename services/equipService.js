@@ -21,7 +21,6 @@ module.exports = class equipService {
                 Emplacement :data.Emplacement,
                 Etat :data.Etat,
                 ConnecteA:data.ConnecteA,
-                Pays:data.Pays,
                 RFID:data.RFID,
               
             };
@@ -57,16 +56,8 @@ module.exports = class equipService {
                 throw error;
             }
         }
-        static async getEquipByRfid(RFID) {
-            try {
-                const equipByRfid = await equip.findOne({ RFID: RFID });
-                return equipByRfid;
-            } catch (error) {
-                console.log(`Could not fetch equip by RFID ${error}`);
-                throw error;
-            }
-        }
 
+      
         static async updateequip(id, updateData) {
             try {
                 const updated = await equip.findOneAndUpdate({ _id: id }, updateData, { new: true });

@@ -19,22 +19,20 @@ module.exports = class InterventionService {
             console.log('Intervention created with ID:', response._id);
             setTimeout(() => {
                 eventEmitter.emit('evaluateEquipment', response._id);
-            }, 6000); // 3 minutes
+            }, 1000); // 3 minutes
             return response;
         } catch (error) {
             console.log('Error creating intervention:', error);
             throw error;
         }
     }
-
     static async getInterventionById(interventionId) {
         try {
             return await Intervention.findById(interventionId);
         } catch (error) {
             console.log(`Intervention not found: ${error}`);
             throw error;
-        }
-    }
+        }}
 
     static async updateIntervention(interventionId, updateData) {
         try {
@@ -43,8 +41,7 @@ module.exports = class InterventionService {
         } catch (error) {
             console.log(`Could not update intervention: ${error}`);
             throw error;
-        }
-    }
+        }}
 
     static async deleteIntervention(interventionId) {
         try {
