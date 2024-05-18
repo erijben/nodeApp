@@ -249,7 +249,24 @@ app.get('/api/config/isConfigured/:equipmentId', async (req, res) => {
   }
 });
 
+app.post('/connections', async (req, res) => {
+  const { from, to } = req.body;
+  if (!from || !to) {
+    return res.status(400).json({ error: 'Both from and to equipment IDs are required' });
+  }
 
+  try {
+    // Ajouter l'équipement 'to' à la liste des connexions de l'équipement 'from'
+    await Equip.findByIdAndUpdate(from, { $addToSet: { ConnecteA: to } });
+
+    // Ajouter l'équipement 'from' à la liste des connexions de l'équipement 'to'
+    await Equip.findByIdAndUpdate(to, { $addToSet: { ConnecteA: from } });
+
+    res.status(200).json({ success: true, message: 'Connection created successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 // Route to handle ping results for a specific equipment
 app.get('/api/pingResults/equip/:equipmentId', async (req, res) => {
