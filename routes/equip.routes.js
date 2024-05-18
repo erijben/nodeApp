@@ -15,6 +15,4 @@ router.delete('/:id', equipCtrl.apiDeleteequip);
 router.get("/find/:rfid", equipCtrl.apiGetEquipByRfid);
 
 
-
-
 module.exports =  router;
