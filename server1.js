@@ -248,7 +248,6 @@ app.get('/api/config/isConfigured/:equipmentId', async (req, res) => {
     res.status(500).send('Server error');
   }
 });
-
 app.post('/connections', async (req, res) => {
   const { from, to } = req.body;
   if (!from || !to) {
@@ -256,13 +255,11 @@ app.post('/connections', async (req, res) => {
   }
 
   try {
-    // Ajouter l'équipement 'to' à la liste des connexions de l'équipement 'from'
     await Equip.findByIdAndUpdate(from, { $addToSet: { ConnecteA: to } });
-
-    // Ajouter l'équipement 'from' à la liste des connexions de l'équipement 'to'
     await Equip.findByIdAndUpdate(to, { $addToSet: { ConnecteA: from } });
 
-    res.status(200).json({ success: true, message: 'Connection created successfully' });
+    const updatedEquipments = await Equip.find();
+    res.status(200).json({ success: true, message: 'Connection created successfully', equipments: updatedEquipments });
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
@@ -704,6 +701,21 @@ app.get('/api/scannedEquipments', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+app.post('/api/scannedEquipments', async (req, res) => {
+  try {
+    const { equipments } = req.body;
+    for (let equipment of equipments) {
+      await Equip.updateOne({ _id: equipment._id }, equipment, { upsert: true });
+    }
+    res.status(200).json({ message: 'Equipments updated' });
+  } catch (error) {
+    console.error('Error updating scanned equipments:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 
 app.get('/api/pingResults', async (req, res) => {
   try {
