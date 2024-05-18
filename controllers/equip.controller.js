@@ -107,7 +107,20 @@ module.exports = class equip {
         }
     }
     
+    static async apiUpdateConnection(req, res) {
+        try {
+          const { currentEquipId, previousEquipId } = req.body;
     
+          if (!currentEquipId || !previousEquipId) {
+            return res.status(400).json({ success: false, message: "Both equipment IDs are required" });
+          }
+    
+          const updatedEquip = await equipService.updateConnection(currentEquipId, previousEquipId);
+          res.json({ success: true, message: "Connection updated successfully", data: updatedEquip });
+        } catch (error) {
+          res.status(500).json({ success: false, message: "Error updating connection", error: error.message });
+        }
+      }
     
     static async apiDeleteequip(req, res, next) {
         try {

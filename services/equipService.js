@@ -70,8 +70,25 @@ module.exports = class equipService {
                 throw error;
             }
         }
+     
+  static async updateConnection(currentEquipId, previousEquipId) {
+    try {
+      const currentEquipment = await equip.findById(currentEquipId);
+      if (!currentEquipment) throw new Error('Current equipment not found');
+      
+      const previousEquipment = await equip.findById(previousEquipId);
+      if (!previousEquipment) throw new Error('Previous equipment not found');
+      
+      currentEquipment.ConnecteA.push(previousEquipId);
+      await currentEquipment.save();
+      
+      return currentEquipment;
+    } catch (error) {
+      console.error('Error updating connection:', error);
+      throw error;
+    }
+  }
         
-
     static async deleteequip(equipId) {
         try {
             const deletedResponse = await equip.findOneAndDelete({ _id: equipId });
