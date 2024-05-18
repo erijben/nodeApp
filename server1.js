@@ -53,6 +53,20 @@ app.use('/api/interventions', interventionRoute);
 app.use("/config", configRoute )
 app.use('/reports', express.static('reports'));
  
+
+
+let scannedEquipments = [];
+
+app.get('/scannedEquipments', (req, res) => {
+  res.json(scannedEquipments);
+});
+
+app.post('/scannedEquipments', (req, res) => {
+  scannedEquipments = req.body;
+  res.sendStatus(200);
+});
+
+
 app.post('/api/reports/generate', async (req, res) => {
   try {
       const { startDate, endDate, equipmentIds } = req.body;
@@ -248,22 +262,8 @@ app.get('/api/config/isConfigured/:equipmentId', async (req, res) => {
     res.status(500).send('Server error');
   }
 });
-app.post('/connections', async (req, res) => {
-  const { from, to } = req.body;
-  if (!from || !to) {
-    return res.status(400).json({ error: 'Both from and to equipment IDs are required' });
-  }
 
-  try {
-    await Equip.findByIdAndUpdate(from, { $addToSet: { ConnecteA: to } });
-    await Equip.findByIdAndUpdate(to, { $addToSet: { ConnecteA: from } });
 
-    const updatedEquipments = await Equip.find();
-    res.status(200).json({ success: true, message: 'Connection created successfully', equipments: updatedEquipments });
-  } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
 
 // Route to handle ping results for a specific equipment
 app.get('/api/pingResults/equip/:equipmentId', async (req, res) => {
@@ -692,30 +692,6 @@ const sendAlertEmail = (to, equipmentName, equipmentId, dataType, currentValue, 
 //cron.schedule('*/30    ', () => { // Toutes les 5 minutes par exemple
 //monitorAndAlert();
 //});
-app.get('/api/scannedEquipments', async (req, res) => {
-  try {
-    const equipments = await Equip.find();
-    res.status(200).json(equipments);
-  } catch (error) {
-    console.error('Error fetching scanned equipments:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-app.post('/api/scannedEquipments', async (req, res) => {
-  try {
-    const { equipments } = req.body;
-    for (let equipment of equipments) {
-      await Equip.updateOne({ _id: equipment._id }, equipment, { upsert: true });
-    }
-    res.status(200).json({ message: 'Equipments updated' });
-  } catch (error) {
-    console.error('Error updating scanned equipments:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-
 
 app.get('/api/pingResults', async (req, res) => {
   try {
