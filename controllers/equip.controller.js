@@ -123,4 +123,22 @@ module.exports = class equip {
             res.status(500).json({ error: error });
         }
     }
+    static async apiGetEquipByRfid(req, res) {
+        try {
+          const rfid = req.params.rfid;
+          const equip = await equipService.getEquipByRfid(rfid);
+          if (equip) {
+            // Marquer l'équipement comme scanné
+            equip.isScanned = true;
+            await equip.save();
+            res.json({ success: true, equipment: equip });
+          } else {
+            res.json({ success: false, message: "Équipement non trouvé" });
+          }
+        } catch (error) {
+          console.error("Erreur lors de la recherche de l'équipement :", error);
+          res.status(500).json({ success: false, message: "Erreur du serveur" });
+        }
+      }
+      
 };

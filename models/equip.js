@@ -30,7 +30,10 @@ const equipSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Equip'
   }],
-  
+  isScanned: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 module.exports = mongoose.model("Equip", equipSchema);
