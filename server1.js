@@ -695,6 +695,15 @@ const sendAlertEmail = (to, equipmentName, equipmentId, dataType, currentValue, 
 //cron.schedule('*/30    ', () => { // Toutes les 5 minutes par exemple
 //monitorAndAlert();
 //});
+app.get('/api/scannedEquipments', async (req, res) => {
+  try {
+    const equipments = await Equip.find();
+    res.status(200).json(equipments);
+  } catch (error) {
+    console.error('Error fetching scanned equipments:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 app.get('/api/pingResults', async (req, res) => {
   try {
