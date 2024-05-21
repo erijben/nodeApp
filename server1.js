@@ -4,7 +4,6 @@ const app = express(); // Initialize Express app
 const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
 const http = require('http');
- // Remplace "app" par ton application Express si tu en as une
 const socketIO = require('socket.io');
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
@@ -26,15 +25,9 @@ const eventEmitter = require('./services/event-emitter');
 const { evaluateEquipmentAfterIntervention } = require('./services/pingtest');
 const Alert = require('./models/Alert');
 
-
 const {
   generateInterventionReport, // Une seule fois
   createFullReport}= require('./services/reportService');
-
-
-
-
-
  
   const server = http.createServer(app);
   // After setting up your server and io
@@ -804,6 +797,11 @@ io.on('connection', (socket) => {
 
 const port = process.env.PORT || 3001;
 
+// After initializing `io`
+eventEmitter.on('newAlert', (alert) => {
+  io.emit('newAlert', alert);
+});
+
 
 require('./services/pingtest').setIO(io);
 server.listen(port, () => {
@@ -817,10 +815,6 @@ server.listen(port, () => {
 
 module.exports = { app, server, io }; 
 
-// After initializing `io`
-eventEmitter.on('newAlert', (alert) => {
-  io.emit('newAlert', alert);
-});
 
 
 mongoose
