@@ -30,7 +30,7 @@ const Alert = require('./models/Alert');
 const {
   generateInterventionReport, // Une seule fois
   createFullReport}= require('./services/reportService');
-  
+
   // Middleware to process JSON data
   app.use(express.json());
 
@@ -57,22 +57,8 @@ app.use('/reports', express.static('reports'));
 
 
 
-let scannedEquipments = [];
 
-app.get('/scannedEquipments', (req, res) => {
-  res.json(scannedEquipments);
-});
 
-app.post('/scannedEquipments', (req, res) => {
-  scannedEquipments = req.body;
-  res.sendStatus(200);
-});
- 
-app.post('/resetScannedEquipments', (req, res) => {
-  scannedEquipments = [];
-  res.sendStatus(200);
-});
- 
 
 app.post('/api/reports/generate', async (req, res) => {
   try {
@@ -809,16 +795,30 @@ server.listen(port, () => {
 
 module.exports = { app, server, io }; 
 
-// After initializing `io`
-eventEmitter.on('newAlert', (alert) => {
-  io.emit('newAlert', alert);
-});
 
 
 mongoose
   .connect('mongodb+srv://erijbenamor6:adminadmin@erijapi.9b6fc2g.mongodb.net/Node-API?retryWrites=true&w=majority')
   .then(() => {
     console.log('Connected to MongoDB');
+    
+
+    let scannedEquipments = [];
+
+    app.get('/scannedEquipments', (req, res) => {
+      res.json(scannedEquipments);
+    });
+    
+    app.post('/scannedEquipments', (req, res) => {
+      scannedEquipments = req.body;
+      res.sendStatus(200);
+    });
+    
+    app.post('/resetScannedEquipments', (req, res) => {
+      scannedEquipments = [];
+      res.sendStatus(200);
+    });
+    
     
     //Schedule pingAllEquipments every 2 minutes using cron
     cron.schedule('*/50 * * * *', async () => {
