@@ -99,8 +99,7 @@ module.exports = class equipService {
                 throw error;
             }
         }
-        
-
+    
     static async deleteequip(equipId) {
         try {
             const deletedResponse = await equip.findOneAndDelete({ _id: equipId });
