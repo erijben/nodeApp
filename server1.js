@@ -4,12 +4,13 @@ const app = express(); // Initialize Express app
 const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
 const http = require('http');
+const server = http.createServer(app); // Remplace "app" par ton application Express si tu en as une
 const socketIO = require('socket.io');
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 const cron = require('node-cron');
-const PingResult = require('./models/Ping');
+const PingResult = require('./models/ping');
 const equipRoute = require("./routes/equip.routes");
 const userRoute = require("./routes/user.routes");
 const authRoute = require("./routes/auth.routes");
@@ -25,27 +26,16 @@ const eventEmitter = require('./services/event-emitter');
 const { evaluateEquipmentAfterIntervention } = require('./services/pingtest');
 const Alert = require('./models/Alert');
 
+
 const {
   generateInterventionReport, // Une seule fois
   createFullReport}= require('./services/reportService');
- 
-  const server = http.createServer(app);
-  // After setting up your server and io
-const io = socketIO(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
-
-// Autoriser toutes les origines
-const allowedOrigins = '*';
-
+  
   // Middleware to process JSON data
   app.use(express.json());
 
-
-
+// Autoriser toutes les origines
+const allowedOrigins = '*';
 // Ajouter le middleware CORS à votre application Express
 app.use(cors({
   origin: allowedOrigins
@@ -62,16 +52,27 @@ app.use('/auth', authRoute);
 app.use('/api/interventions', interventionRoute);
 app.use("/config", configRoute )
 app.use('/reports', express.static('reports'));
- 
 
-io.on('connection', (socket) => {
-  console.log('Nouvelle connexion WebSocket');
 
-  socket.on('disconnect', () => {
-    console.log('Utilisateur déconnecté');
-  });
+
+
+
+let scannedEquipments = [];
+
+app.get('/scannedEquipments', (req, res) => {
+  res.json(scannedEquipments);
 });
 
+app.post('/scannedEquipments', (req, res) => {
+  scannedEquipments = req.body;
+  res.sendStatus(200);
+});
+ 
+app.post('/resetScannedEquipments', (req, res) => {
+  scannedEquipments = [];
+  res.sendStatus(200);
+});
+ 
 
 app.post('/api/reports/generate', async (req, res) => {
   try {
@@ -787,21 +788,14 @@ app.get('/api/topologie', async (req, res) => {
 });
 
 
-io.on('connection', (socket) => {
-  console.log('Nouvelle connexion WebSocket');
-
-  socket.on('disconnect', () => {
-    console.log('Utilisateur déconnecté');
-  });
-});
-
 const port = process.env.PORT || 3001;
-
-// After initializing `io`
-eventEmitter.on('newAlert', (alert) => {
-  io.emit('newAlert', alert);
+// After setting up your server and io
+const io = socketIO(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
 });
-
 
 require('./services/pingtest').setIO(io);
 server.listen(port, () => {
@@ -815,6 +809,10 @@ server.listen(port, () => {
 
 module.exports = { app, server, io }; 
 
+// After initializing `io`
+eventEmitter.on('newAlert', (alert) => {
+  io.emit('newAlert', alert);
+});
 
 
 mongoose
