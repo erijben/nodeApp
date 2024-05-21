@@ -20,6 +20,7 @@ module.exports = class equipService {
                 AdresseIp : data.AdresseIp,
                 Emplacement :data.Emplacement,
                 Etat :data.Etat,
+              
                 RFID:data.RFID,
               
             };
@@ -38,14 +39,6 @@ module.exports = class equipService {
                 console.log(`equip not found. ${error}`);
             }
         }
-        static async getEquipByIp(ip) {
-            try {
-                const equipByIp = await equip.findOne({ AdresseIp: ip });
-                return equipByIp;
-            } catch (error) {
-                console.log(`Could not fetch equip by IP ${error}`);
-            }
-        }
         static async getEquipByName(Nom) {
             try {
                 const equipByName = await equip.findOne({ Nom: Nom });
@@ -55,10 +48,46 @@ module.exports = class equipService {
                 throw error;
             }
         }
-
-      
+        static async getEquipByIp(ip) {
+            try {
+                const equipByIp = await equip.findOne({ AdresseIp: ip });
+                return equipByIp;
+            } catch (error) {
+                console.log(`Could not fetch equip by IP ${error}`);
+            }
+        }
+        static async getEquipByRfid(RFID) {
+            try {
+                const equipByRfid = await equip.findOne({ RFID: RFID });
+                return equipByRfid;
+            } catch (error) {
+                console.log(`Could not fetch equip by RFID ${error}`);
+                throw error;
+            }
+        }
         static async updateequip(id, updateData) {
             try {
+                // Check if an equipment with the same name exists
+                const existingEquipByName = await equip.findOne({ Nom: updateData.Nom });
+                if (existingEquipByName && existingEquipByName._id.toString() !== id) {
+                    console.log(`Équipement avec le nom déjà existant: ${updateData.Nom}`);
+                    throw new Error(`Équipement déjà existant avec le nom: ${updateData.Nom}`);
+                }
+        
+                // Check if an equipment with the same IP address exists
+                const existingEquipByIp = await equip.findOne({ AdresseIp: updateData.AdresseIp });
+                if (existingEquipByIp && existingEquipByIp._id.toString() !== id) {
+                    console.log(`Équipement avec l'adresse IP déjà existante: ${updateData.AdresseIp}`);
+                    throw new Error(`Équipement déjà existant avec l'adresse IP: ${updateData.AdresseIp}`);
+                }
+        
+                // Check if an equipment with the same RFID exists
+                const existingEquipByRfid = await equip.findOne({ RFID: updateData.RFID });
+                if (existingEquipByRfid && existingEquipByRfid._id.toString() !== id) {
+                    console.log(`Équipement avec le RFID déjà existant: ${updateData.RFID}`);
+                    throw new Error(`Équipement déjà existant avec le RFID: ${updateData.RFID}`);
+                }
+        
                 const updated = await equip.findOneAndUpdate({ _id: id }, updateData, { new: true });
                 if (!updated) {
                     console.log(`No equipment found with ID ${id}`);
@@ -70,25 +99,8 @@ module.exports = class equipService {
                 throw error;
             }
         }
-     
-  static async updateConnection(currentEquipId, previousEquipId) {
-    try {
-      const currentEquipment = await equip.findById(currentEquipId);
-      if (!currentEquipment) throw new Error('Current equipment not found');
-      
-      const previousEquipment = await equip.findById(previousEquipId);
-      if (!previousEquipment) throw new Error('Previous equipment not found');
-      
-      currentEquipment.ConnecteA.push(previousEquipId);
-      await currentEquipment.save();
-      
-      return currentEquipment;
-    } catch (error) {
-      console.error('Error updating connection:', error);
-      throw error;
-    }
-  }
         
+
     static async deleteequip(equipId) {
         try {
             const deletedResponse = await equip.findOneAndDelete({ _id: equipId });

@@ -7,7 +7,6 @@ const http = require('http');
 const server = http.createServer(app); // Remplace "app" par ton application Express si tu en as une
 const socketIO = require('socket.io');
 const PDFDocument = require('pdfkit');
-const PdfPrinter = require('pdfmake');
 const fs = require('fs');
 const path = require('path');
 const cron = require('node-cron');
@@ -27,21 +26,26 @@ const eventEmitter = require('./services/event-emitter');
 const { evaluateEquipmentAfterIntervention } = require('./services/pingtest');
 const Alert = require('./models/Alert');
 
+
 const {
   generateInterventionReport, // Une seule fois
   createFullReport}= require('./services/reportService');
 
 
-// Middleware to process JSON data
-  app.use(express.json());
-const allowedOrigins = '*';
 
+
+
+  // Middleware to process JSON data
+  app.use(express.json());
+
+// Autoriser toutes les origines
+const allowedOrigins = '*';
 // Ajouter le middleware CORS à votre application Express
 app.use(cors({
   origin: allowedOrigins
 }));
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 app.get('/', (req, res) => {
   res.send('hello world');
 });
@@ -52,7 +56,9 @@ app.use('/auth', authRoute);
 app.use('/api/interventions', interventionRoute);
 app.use("/config", configRoute )
 app.use('/reports', express.static('reports'));
- 
+
+
+
 
 
 let scannedEquipments = [];
@@ -65,7 +71,12 @@ app.post('/scannedEquipments', (req, res) => {
   scannedEquipments = req.body;
   res.sendStatus(200);
 });
-
+ 
+app.post('/resetScannedEquipments', (req, res) => {
+  scannedEquipments = [];
+  res.sendStatus(200);
+});
+ 
 
 app.post('/api/reports/generate', async (req, res) => {
   try {
@@ -286,6 +297,8 @@ app.get('/api/pingResults/equip/:equipmentId', async (req, res) => {
 });
 
 
+
+
 app.get('/api/config/equip/:equipmentId', async (req, res) => {
   try {
     const { equipmentId } = req.params;
@@ -306,7 +319,6 @@ app.get('/api/config/equip/:equipmentId', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error', details: error.toString() });
   }
 });
-
 
 app.get('/api/pingResults/alert/:equipmentId', async (req, res) => {
   try {
@@ -576,6 +588,38 @@ app.post('/api/ttlStats', async (req, res) => {
   }
 });
 
+app.post('/api/ttlStats', async (req, res) => {
+  const { equipmentIds, startDate, endDate } = req.body;
+
+  if (!equipmentIds || equipmentIds.length === 0 || !startDate || !endDate) {
+    console.error('Missing parameters:', { equipmentIds, startDate, endDate });
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+
+  try {
+    const ttlData = await PingResult.find({
+      equipment: { $in: equipmentIds },
+      timestamp: { $gte: new Date(startDate), $lte: new Date(endDate) }
+    }).select('TTL');
+
+    let stats = { green: 0, orange: 0, red: 0 };
+    ttlData.forEach(result => {
+      if (result.TTL && result.TTL.length > 0) {
+        const averageTTL = result.TTL.reduce((sum, current) => sum + current, 0) / result.TTL.length;
+        if (averageTTL < 56) stats.green++;
+        else if (averageTTL <= 113) stats.orange++;
+        else stats.red++;
+      }
+    });
+
+    console.log('Computed stats:', stats);
+    res.json(stats);
+  } catch (error) {
+    console.error('Error fetching TTL stats:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 app.get('/pays', async (req, res) => {
   try {
@@ -591,6 +635,20 @@ app.get('/pays', async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Erreur lors de la récupération des données", error });
   }
+});
+
+app.post('/api/reports/generateDashboardPDF', async (req, res) => {
+  const { startDate, endDate, equipments, data } = req.body;
+  const doc = new PDFDocument();
+  const filePath = `./path/to/reports/dashboard-report-${Date.now()}.pdf`;
+
+  doc.pipe(fs.createWriteStream(filePath));
+  doc.fontSize(25).text('Dashboard Report', 100, 100);
+  // More complex PDF generation logic here
+  // You can iterate over `data` to create tables and charts as needed
+  doc.end();
+
+  res.json({ pdfUrl: `http://localhost:3001/path/to/reports/${path.basename(filePath)}` });
 });
 
 /*const EMAIL_USERNAME = 'erijbenamor6@gmail.com'; // Remplacez par l'email réel
@@ -704,9 +762,37 @@ app.get('/api/pingResults', async (req, res) => {
   }
 });
 
+// À ajouter dans server1.js
+app.get('/api/topologie', async (req, res) => {
+  try {
+    const equipements = await Equip.find().populate('ConnecteA');
+    const topologie = equipements.map(equip => {
+      return {
+        id: equip._id,
+        nom: equip.Nom,
+        ip: equip.AdresseIp,
+        etat: equip.Etat,
+        Type:equip.Type,
+        connecteA: equip.ConnecteA.map(connexion => ({
+          id: connexion._id,
+          nom: connexion.Nom,
+          ip: connexion.AdresseIp,
+          etat: connexion.Etat,
+          Type:equip.Type,
+        })),
+        emplacement: equip.Emplacement,
+        port: equip.Port,
+      };
+    });
+    res.json(topologie);
+  } catch (error) {
+    console.error('Error fetching network topology:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 const port = process.env.PORT || 3001;
-
 // After setting up your server and io
 const io = socketIO(server, {
   cors: {
@@ -731,6 +817,7 @@ module.exports = { app, server, io };
 eventEmitter.on('newAlert', (alert) => {
   io.emit('newAlert', alert);
 });
+
 
 mongoose
   .connect('mongodb+srv://erijbenamor6:adminadmin@erijapi.9b6fc2g.mongodb.net/Node-API?retryWrites=true&w=majority')

@@ -318,12 +318,9 @@ async function evaluateEquipmentAfterIntervention(interventionId) {
     });
     await newAlert.save();
     await EquipModel.findByIdAndUpdate(equipmentId, { Etat: status });
-
     const savedAlert = await newAlert.save();
     console.log('Alerte sauvegardée pour le statut:', status);
     const fullAlert = await Alert.findById(savedAlert._id).populate('equipmentId', 'Nom');
-
-
     // Assurez-vous que `io` est défini avant de tenter de l'émettre
     if (io && fullAlert) {
       io.emit('newAlert', {
