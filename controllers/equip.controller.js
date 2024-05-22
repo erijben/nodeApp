@@ -134,28 +134,5 @@ module.exports = class equip {
             res.status(500).json({ error: error });
         }
     }
-    static async apiScanEquip(req, res) {
-        try {
-            const rfid = req.params.rfid;
-            const scannedEquipment = await equipService.getEquipByRfid(rfid);
-
-            if (!scannedEquipment) {
-                return res.status(404).json({ success: false, message: 'Équipement non trouvé' });
-            }
-
-            const lastScannedEquipmentId = req.body.lastScannedEquipmentId;
-            if (lastScannedEquipmentId) {
-                const lastScannedEquipment = await equipService.getequipbyId(lastScannedEquipmentId);
-                if (lastScannedEquipment) {
-                    lastScannedEquipment.ConnecteA.push(scannedEquipment._id);
-                    await lastScannedEquipment.save();
-                }
-            }
-
-            res.json({ success: true, equipment: scannedEquipment });
-        } catch (error) {
-            console.error('Error scanning equipment:', error);
-            res.status(500).json({ error: 'Internal Server Error' });
-        }
-    }
+    
 };
