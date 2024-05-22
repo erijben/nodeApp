@@ -5,7 +5,7 @@ module.exports = class equipService {
     
     static async getAllequips() {
         try {
-            const allequip = await equip.find();
+            const allequip = await equip.find().populate('ConnecteA');
             return allequip;
         } catch (error) {
             console.log(`Could not fetch equips ${error}`);
@@ -33,7 +33,7 @@ module.exports = class equipService {
 
           static async getequipbyId(equipId) {
             try {
-                const singleequipResponse = await equip.findById({ _id: equipId });
+                const singleequipResponse = await equip.findById({ _id: equipId }).populate('ConnecteA');
                 return singleequipResponse;
             } catch (error) {
                 console.log(`equip not found. ${error}`);
@@ -58,7 +58,7 @@ module.exports = class equipService {
         }
         static async getEquipByRfid(RFID) {
             try {
-                const equipByRfid = await equip.findOne({ RFID: RFID });
+                const equipByRfid = await equip.findOne({ RFID: RFID }).populate('ConnecteA');
                 return equipByRfid;
             } catch (error) {
                 console.log(`Could not fetch equip by RFID ${error}`);
@@ -88,7 +88,7 @@ module.exports = class equipService {
                     throw new Error(`Équipement déjà existant avec le RFID: ${updateData.RFID}`);
                 }
         
-                const updated = await equip.findOneAndUpdate({ _id: id }, updateData, { new: true });
+                const updated = await equip.findOneAndUpdate({ _id: id },  updateData, { new: true }).populate('ConnecteA');
                 if (!updated) {
                     console.log(`No equipment found with ID ${id}`);
                     return null;
