@@ -3,7 +3,6 @@ const { isValidIPv4 } = require('net');
 
 module.exports = class equip {
 
-
     static async apiGetEquipByRfid(req, res) {
         try {
           const rfid = req.params.rfid;
@@ -18,6 +17,7 @@ module.exports = class equip {
           res.status(500).json({ success: false, message: "Erreur du serveur" });
         }
       }
+      
 
     static async apiGetAllequips(req, res, next) {
         try {
