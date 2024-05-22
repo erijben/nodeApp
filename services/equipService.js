@@ -100,8 +100,6 @@ module.exports = class equipService {
             }
         }
     
-       
-
     static async deleteequip(equipId) {
         try {
             const deletedResponse = await equip.findOneAndDelete({ _id: equipId });
