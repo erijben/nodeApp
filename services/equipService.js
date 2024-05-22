@@ -100,21 +100,8 @@ module.exports = class equipService {
             }
         }
     
-        static async removeConnection(equipId, connectedEquipId) {
-            try {
-                const equipToUpdate = await equip.findById(equipId);
-                if (!equipToUpdate) {
-                    throw new Error(`Équipement avec l'ID ${equipId} non trouvé`);
-                }
-                equipToUpdate.ConnecteA = equipToUpdate.ConnecteA.filter(id => id.toString() !== connectedEquipId);
-                await equipToUpdate.save();
-                return equipToUpdate;
-            } catch (error) {
-                console.error(`Erreur lors de la suppression de la connexion: ${error}`);
-                throw error;
-            }
-        }
-        
+       
+
     static async deleteequip(equipId) {
         try {
             const deletedResponse = await equip.findOneAndDelete({ _id: equipId });

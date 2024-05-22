@@ -119,19 +119,8 @@ module.exports = class equip {
             res.status(500).json({ error: error.message });
         }
     }
-    
-    static async apiRemoveConnection(req, res) {
-        try {
-            const equipId = req.params.id;
-            const { connectedEquipId } = req.body;
-            const updatedEquip = await equipService.removeConnection(equipId, connectedEquipId);
-            res.json({ success: true, message: "Connexion supprimée avec succès.", data: updatedEquip });
-        } catch (error) {
-            console.error('Error removing connection:', error);
-            res.status(500).json({ error: error.message });
-        }
-    }
-    
+ 
+
     static async apiDeleteequip(req, res, next) {
         try {
             const equipId = req.params.id;
