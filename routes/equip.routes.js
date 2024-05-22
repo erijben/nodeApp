@@ -13,4 +13,6 @@ router.post("/add", (req, res) => {
 
 router.delete('/:id', equipCtrl.apiDeleteequip);
 router.get("/find/:rfid", equipCtrl.apiGetEquipByRfid);
+router.put("/equip/:id/removeConnection", equipCtrl.apiRemoveConnection);
+
 module.exports =  router;
