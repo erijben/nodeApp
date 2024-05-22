@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
 const equipSchema = new mongoose.Schema({
   Nom: {
@@ -26,11 +27,7 @@ const equipSchema = new mongoose.Schema({
     required: false,
   },
 
-  ConnecteA: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Equip'
-  }],
-
+  ConnecteA: [{ type: Schema.Types.ObjectId, ref: 'Equip' }]
 });
 
 module.exports = mongoose.model("Equip", equipSchema);
