@@ -8,9 +8,8 @@ router.post("/add", (req, res) => {
   console.log("POST request to add");
   equipCtrl.apiCreateequip(req, res);});
    
-  router.get("/equip/:id", equipCtrl.apiGetequipById);
-  router.put("/equip/:id", equipCtrl.apiUpdateequip);
-
+router.get("/equip/:id", equipCtrl.apiGetequipById);
+router.put("/equip/:id", equipCtrl.apiUpdateequip);
 router.delete('/:id', equipCtrl.apiDeleteequip);
 router.get("/find/:rfid", equipCtrl.apiGetEquipByRfid);
 module.exports =  router;

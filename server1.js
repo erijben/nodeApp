@@ -25,8 +25,6 @@ const Config = require('./models/config'); // Assurez-vous que le chemin est cor
 const eventEmitter = require('./services/event-emitter');
 const { evaluateEquipmentAfterIntervention } = require('./services/pingtest');
 const Alert = require('./models/Alert');
-
-
 const {
   generateInterventionReport, // Une seule fois
   createFullReport}= require('./services/reportService');
