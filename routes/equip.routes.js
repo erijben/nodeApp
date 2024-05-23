@@ -5,16 +5,16 @@ const Equip = require('../models/equip');
 
 router.get("/", equipCtrl.apiGetAllequips);
 router.post("/add", (req, res) => {
-  console.log("POST request to add");
   equipCtrl.apiCreateequip(req, res);
 });
+
 router.get("/equip/:id", equipCtrl.apiGetequipById);
-router.put('/equip/:id', async (req, res) => {
+router.put("/equip/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
 
-    const updatedEquip = await Equip.findByIdAndUpdate(id, updateData, { new: true }).populate("ConnecteA");
+    const updatedEquip = await Equip.findByIdAndUpdate(id, { $addToSet: { ConnecteA: updateData.ConnecteA } }, { new: true }).populate("ConnecteA");
     if (!updatedEquip) {
       return res.status(404).json({ message: "Équipement non trouvé" });
     }
@@ -25,6 +25,8 @@ router.put('/equip/:id', async (req, res) => {
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
+
 router.delete('/:id', equipCtrl.apiDeleteequip);
 router.get("/find/:rfid", equipCtrl.apiGetEquipByRfid);
+
 module.exports = router;
