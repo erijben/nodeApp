@@ -57,27 +57,6 @@ const io = socketIO(server, {
   }
 });
 
-io.on('connection', (socket) => {
-  console.log('New client connected');
-
-  socket.on('scanEquip', async (rfid) => {
-    try {
-      const equip = await Equip.findOne({ RFID: rfid }).populate('ConnecteA');
-      if (equip) {
-        io.emit('updateEquip', equip);
-      } else {
-        console.log(`Équipement avec RFID ${rfid} non trouvé`);
-      }
-    } catch (error) {
-      console.error('Erreur lors de la recherche de l\'équipement :', error);
-    }
-  });
-
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
-  });
-});
-
 
 let scannedEquipments = [];
 
