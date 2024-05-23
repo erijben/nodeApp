@@ -1,5 +1,4 @@
 const equip = require("../models/equip");
-const cron = require('node-cron');
 
 module.exports = class equipService {
     
@@ -88,18 +87,20 @@ module.exports = class equipService {
                     throw new Error(`Équipement déjà existant avec le RFID: ${updateData.RFID}`);
                 }
         
-                const updateFields = { ConnecteA: updateData.ConnecteA };
-                const updated = await equip.findByIdAndUpdate(id, updateFields, { new: true }).populate('ConnecteA');
-                if (!updated) {
-                  console.log(`No equipment found with ID ${id}`);
-                  return null;
-                }
-                return updated;
-              } catch (error) {
-                console.error('Error in updateequip:', error);
-                throw error;
-              }
+                const existingEquip = await equip.findById(id);
+            if (!existingEquip) {
+                throw new Error(`No equipment found with ID ${id}`);
             }
+
+            existingEquip.ConnecteA = updateData.ConnecteA || existingEquip.ConnecteA;
+
+            const updatedEquip = await existingEquip.save();
+            return updatedEquip;
+        } catch (error) {
+            console.error('Error in updateequip:', error);
+            throw error;
+        }
+    }
     
     
     static async deleteequip(equipId) {
