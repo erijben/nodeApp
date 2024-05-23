@@ -89,17 +89,17 @@ module.exports = class equipService {
                 }
         
                 const updateFields = { ConnecteA: updateData.ConnecteA };
-                const updated = await equip.findByIdAndUpdate(id, { $set: updateFields }, { new: true }).populate('ConnecteA');
+                const updated = await equip.findByIdAndUpdate(id, updateFields, { new: true }).populate('ConnecteA');
                 if (!updated) {
-                    console.log(`No equipment found with ID ${id}`);
-                    return null;
+                  console.log(`No equipment found with ID ${id}`);
+                  return null;
                 }
                 return updated;
-            } catch (error) {
+              } catch (error) {
                 console.error('Error in updateequip:', error);
                 throw error;
+              }
             }
-        }
     
     
     static async deleteequip(equipId) {

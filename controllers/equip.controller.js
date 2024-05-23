@@ -111,13 +111,13 @@ module.exports = class equip {
             }
             const updatedEquip = await equipService.updateequip(equipId, updateData);
             if (!updatedEquip) {
-                return res.status(404).json({ success: false, message: "Aucun équipement trouvé avec l'ID fourni." });
+              return res.status(404).json({ success: false, message: "Aucun équipement trouvé avec l'ID fourni." });
             }
             res.json({ success: true, message: "Équipement mis à jour avec succès.", data: updatedEquip });
-        } catch (error) {
+          } catch (error) {
             res.status(500).json({ error: error.message });
+          }
         }
-    }
 
 
     static async apiDeleteequip(req, res, next) {
