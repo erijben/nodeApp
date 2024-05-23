@@ -109,19 +109,16 @@ module.exports = class equip {
             if (!ipRegex.test(updateData.AdresseIp)) {
                 return res.status(400).json({ success: false, message: "Format d'adresse IP invalide." });
             }
-            console.log(`Received update request for equipment ID: ${equipId}`);
             const updatedEquip = await equipService.updateequip(equipId, updateData);
             if (!updatedEquip) {
-                console.error(`No equipment found with ID: ${equipId}`);
                 return res.status(404).json({ success: false, message: "Aucun équipement trouvé avec l'ID fourni." });
             }
-            console.log(`Successfully updated equipment with ID: ${equipId}`);
             res.json({ success: true, message: "Équipement mis à jour avec succès.", data: updatedEquip });
         } catch (error) {
-            console.error(`Error updating equipment with ID: ${equipId}`, error);
             res.status(500).json({ error: error.message });
         }
     }
+
 
     static async apiDeleteequip(req, res, next) {
         try {
