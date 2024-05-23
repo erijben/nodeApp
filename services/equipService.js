@@ -88,19 +88,19 @@ module.exports = class equipService {
                     throw new Error(`Équipement déjà existant avec le RFID: ${updateData.RFID}`);
                 }
         
-            // Update only the ConnecteA field
-            const updateFields = { ConnecteA: updateData.ConnecteA };
-            const updated = await equip.findByIdAndUpdate(id, updateFields, { new: true }).populate('ConnecteA');
-            if (!updated) {
-                console.log(`No equipment found with ID ${id}`);
-                return null;
+                const updateFields = { ConnecteA: updateData.ConnecteA };
+                const updated = await equip.findByIdAndUpdate(id, { $set: updateFields }, { new: true }).populate('ConnecteA');
+                if (!updated) {
+                    console.log(`No equipment found with ID ${id}`);
+                    return null;
+                }
+                return updated;
+            } catch (error) {
+                console.error('Error in updateequip:', error);
+                throw error;
             }
-            return updated;
-        } catch (error) {
-            console.error('Error in updateequip:', error);
-            throw error;
         }
-    }
+    
     
     static async deleteequip(equipId) {
         try {

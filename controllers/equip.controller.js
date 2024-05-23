@@ -119,7 +119,7 @@ module.exports = class equip {
         }
     }
 
-    
+
     static async apiDeleteequip(req, res, next) {
         try {
             const equipId = req.params.id;
