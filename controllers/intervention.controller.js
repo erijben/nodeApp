@@ -38,7 +38,7 @@ module.exports = class InterventionController {
           equipment,
           date,
           parentIntervention: formattedParentIntervention,
-      
+          technicianEmail: req.user.email,
         });
     
         const savedIntervention = await newIntervention.save();
