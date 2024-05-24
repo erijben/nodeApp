@@ -49,6 +49,7 @@ async function Login(req, res) {
       // Création du token incluant l'ID de l'utilisateur et son rôle
       const accessToken = JWT.sign({
         id: user._id,
+        email: user.email,
         role: user.role
     }, process.env.JWT_SECRET, { expiresIn: '3d' });
 
@@ -57,7 +58,7 @@ async function Login(req, res) {
         res.status(200).json({
             message: "Login successful",
             accessToken,
-            user: { id: user._id, username: user.username, role: user.role }
+            user: { id: user._id, username: user.username, role: user.role , email:user.email}
         });
     } catch (err) {
         console.error("Error while logging in:", err);
