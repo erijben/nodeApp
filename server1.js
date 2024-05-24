@@ -12,6 +12,7 @@ const path = require('path');
 const cron = require('node-cron');
 const PingResult = require('./models/Ping');
 const equipRoute = require("./routes/equip.routes");
+const inventoryRoute = require('./routes/inventory.routes');
 const userRoute = require("./routes/user.routes");
 const authRoute = require("./routes/auth.routes");
 const configRoute = require("./routes/config.routes");
@@ -49,6 +50,7 @@ app.use('/user', userRoute);
 app.use('/auth', authRoute);
 app.use('/api/interventions', interventionRoute);
 app.use("/config", configRoute )
+app.use('/inventory', inventoryRoute);
 app.use('/reports', express.static('reports'));
 const io = socketIO(server, {
   cors: {

@@ -3,21 +3,24 @@ const { isValidIPv4 } = require('net');
 
 module.exports = class equip {
 
-
+    
     static async apiGetEquipByRfid(req, res) {
         try {
-          const rfid = req.params.rfid;
-          const equip = await equipService.getEquipByRfid(rfid);
-          if (equip) {
-            res.json({ success: true, equipment: equip });
-          } else {
-            res.json({ success: false, message: "Équipement non trouvé" });
-          }
+            const rfid = req.params.rfid;
+            const equip = await equipService.getEquipByRfid(rfid);
+            if (equip) {
+                res.json({ success: true, equipment: equip });
+            } else {
+                res.json({ success: false, message: "Équipement non trouvé" });
+            }
         } catch (error) {
-          console.error("Erreur lors de la recherche de l'équipement :", error);
-          res.status(500).json({ success: false, message: "Erreur du serveur" });
+            console.error("Erreur lors de la recherche de l'équipement :", error);
+            res.status(500).json({ success: false, message: "Erreur du serveur" });
         }
-      }
+    }
+
+
+
 
     static async apiGetAllequips(req, res, next) {
         try {
@@ -35,6 +38,7 @@ module.exports = class equip {
             let id = req.params.id || {};
             console.log('Fetching equipment with ID:', id); // Ajout de ce log
             const equip = await equipService.getequipbyId(id)
+
 ;
             console.log('Fetched equipment data:', equip); // Ajout de ce log
             res.json(equip);
@@ -109,17 +113,21 @@ module.exports = class equip {
             if (!ipRegex.test(updateData.AdresseIp)) {
                 return res.status(400).json({ success: false, message: "Format d'adresse IP invalide." });
             }
+    
             const updatedEquip = await equipService.updateequip(equipId, updateData);
+            
             if (!updatedEquip) {
                 return res.status(404).json({ success: false, message: "Aucun équipement trouvé avec l'ID fourni." });
             }
             res.json({ success: true, message: "Équipement mis à jour avec succès.", data: updatedEquip });
+       
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
-
-
+    
+    
+    
     static async apiDeleteequip(req, res, next) {
         try {
             const equipId = req.params.id;
@@ -134,5 +142,4 @@ module.exports = class equip {
             res.status(500).json({ error: error });
         }
     }
-    
 };
