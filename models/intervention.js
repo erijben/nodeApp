@@ -38,11 +38,11 @@ const interventionSchema = new mongoose.Schema({
         required: false, // Seulement pour les interventions de suivi
         default: null
       },
-      
-      technicianEmail: {
+
+     technicianEmail: {
         type: String,
         required: true,
-    }
+    },
 
 });
 

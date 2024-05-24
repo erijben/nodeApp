@@ -26,34 +26,34 @@ module.exports = class InterventionController {
         }
     }
 
-    static async apiCreateIntervention(req, res, next) {
-      try {
-        const { type, description, equipment, date, parentIntervention} = req.body;
-        // Assurez-vous que parentIntervention est null si elle est une chaîne vide
-        const formattedParentIntervention = parentIntervention === "" ? null : parentIntervention;
-    
-        const newIntervention = new Intervention({
-          type,
-          description,
-          equipment,
-          date,
-          parentIntervention: formattedParentIntervention,
-          technicianEmail: req.user.email,
-        });
-    
-        const savedIntervention = await newIntervention.save();
-    
-        setTimeout(() => {
-          eventEmitter.emit('evaluateEquipment', savedIntervention._id);
-        }, 180000); // 3 minutes
-    
-        res.status(201).json(savedIntervention);
-      } catch (error) {
-        console.error("Error creating intervention:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-      }
+    static async apiCreateIntervention(req, res) {
+        try {
+            const { type, description, equipment, date, parentIntervention } = req.body;
+            const formattedParentIntervention = parentIntervention === "" ? null : parentIntervention;
+
+            const newIntervention = new Intervention({
+                type,
+                description,
+                equipment,
+                date,
+                parentIntervention: formattedParentIntervention,
+                technicianEmail: req.user.email,
+            });
+
+            const savedIntervention = await newIntervention.save();
+
+            setTimeout(() => {
+                eventEmitter.emit('evaluateEquipment', savedIntervention._id);
+            }, 180000); // 3 minutes
+
+            res.status(201).json(savedIntervention);
+        } catch (error) {
+            console.error("Error creating intervention:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
     }
-    
+
+
     static async apiUpdateIntervention(req, res) {
         try {
             const interventionId = req.params.id;
