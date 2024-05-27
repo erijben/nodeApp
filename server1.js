@@ -88,7 +88,7 @@ app.post('/api/reports/generate', async (req, res) => {
     
       // Return the paths where the files can be accessed
       res.json({
-          pdfFilePath: `http://localhost:3001/reports/${path.basename(pdfFilePath)}`,
+          pdfFilePath: `https://nodeapp-ectt.onrender.com/reports/${path.basename(pdfFilePath)}`,
       });
 
   } catch (error) {
