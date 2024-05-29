@@ -46,11 +46,8 @@ const pingResult = new Schema({
     type: Number,
     required: true,
   },
-  consecutiveFailures: {
-    type: Number,
-    required: false,
-  
-  },
+
+
   timestamp: {
     type: Date,
     required: true,

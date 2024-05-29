@@ -94,6 +94,14 @@ module.exports = class equipService {
                     throw new Error(`No equipment found with ID ${id}`);
                 }
     
+                 // Update all fields
+        existingEquip.Nom = updateData.Nom;
+        existingEquip.Type = updateData.Type;
+        existingEquip.AdresseIp = updateData.AdresseIp;
+        existingEquip.RFID = updateData.RFID;
+        existingEquip.Emplacement = updateData.Emplacement;
+        existingEquip.Etat = updateData.Etat;
+        
                 if (updateData.ConnecteA) {
                     existingEquip.ConnecteA = updateData.ConnecteA;
                 }

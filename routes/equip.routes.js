@@ -7,8 +7,8 @@ router.get("/", equipCtrl.apiGetAllequips);
 router.post("/add", (req, res) => {
   equipCtrl.apiCreateequip(req, res);
 });
-
 router.get("/equip/:id", equipCtrl.apiGetequipById);
+router.put("/equip/equip/:id", equipCtrl.apiUpdateequip);
 router.put("/equip/:id", async (req, res) => {
   try {
     const { id } = req.params;
