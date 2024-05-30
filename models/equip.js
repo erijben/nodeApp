@@ -12,19 +12,20 @@ const equipSchema = new mongoose.Schema({
   },
   AdresseIp: {
     type: String,
-    required: false,
+    required: true,
   },
   RFID: {
     type: String,
-    required: false,
+    required: true,
   },
-  Emplacement: {
+  Département: {
     type: String,
-    required: false,
+    required: true,
   },
+
   Etat: {
     type: String,
-    required: false,
+    required: true,
   },
 
   ConnecteA: [{ type: Schema.Types.ObjectId, ref: 'Equip' }]

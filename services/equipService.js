@@ -17,7 +17,7 @@ module.exports = class equipService {
                 Nom :data.Nom,
                 Type :data.Type,
                 AdresseIp : data.AdresseIp,
-                Emplacement :data.Emplacement,
+                Département :data.Département,
                 Etat :data.Etat,
               
                 RFID:data.RFID,
@@ -99,7 +99,7 @@ module.exports = class equipService {
         existingEquip.Type = updateData.Type;
         existingEquip.AdresseIp = updateData.AdresseIp;
         existingEquip.RFID = updateData.RFID;
-        existingEquip.Emplacement = updateData.Emplacement;
+        existingEquip.Département= updateData.Département;
         existingEquip.Etat = updateData.Etat;
         
                 if (updateData.ConnecteA) {
