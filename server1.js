@@ -140,7 +140,12 @@ app.get('/api/pingResults/stats/:equipmentId', async (req, res) => {
       }
 
       console.log(`Processing result - Data: ${attr}, Value: ${value}`);
-      if (value >= parseFloat(threshold)) {
+
+      // Check if the attribute is minimumTime, maximumTime, or averageTime and if value is 0
+      if (['minimumTime', 'maximumTime', 'averageTime'].includes(attr) && value === 0) {
+        console.log('Value is 0 for a critical time attribute');
+        stats.red++;
+      } else if (value >= parseFloat(threshold)) {
         console.log('Value is above threshold');
         stats.red++;
       } else if (value >= warningThreshold && value < parseFloat(threshold)) {
@@ -160,6 +165,7 @@ app.get('/api/pingResults/stats/:equipmentId', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 
