@@ -585,21 +585,6 @@ app.post('/api/ttlStats', async (req, res) => {
 });
 
 
-app.get('/pays', async (req, res) => {
-  try {
-    const aggregation = await Equip.aggregate([
-      {
-        $group: {
-          _id: "$Pays",
-          count: { $sum: 1 }
-        }
-      }
-    ]);
-    res.json(aggregation.map(item => ({ id: item._id, value: item.count })));
-  } catch (error) {
-    res.status(500).json({ message: "Erreur lors de la récupération des données", error });
-  }
-});
 
 app.post('/api/reports/generateDashboardPDF', async (req, res) => {
   const { startDate, endDate, equipments, data } = req.body;
@@ -726,34 +711,7 @@ app.get('/api/pingResults', async (req, res) => {
   }
 });
 
-// À ajouter dans server1.js
-app.get('/api/topologie', async (req, res) => {
-  try {
-    const equipements = await Equip.find().populate('ConnecteA');
-    const topologie = equipements.map(equip => {
-      return {
-        id: equip._id,
-        nom: equip.Nom,
-        ip: equip.AdresseIp,
-        etat: equip.Etat,
-        Type:equip.Type,
-        connecteA: equip.ConnecteA.map(connexion => ({
-          id: connexion._id,
-          nom: connexion.Nom,
-          ip: connexion.AdresseIp,
-          etat: connexion.Etat,
-          Type:equip.Type,
-        })),
-        emplacement: equip.Emplacement,
-        port: equip.Port,
-      };
-    });
-    res.json(topologie);
-  } catch (error) {
-    console.error('Error fetching network topology:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+
 
 
 const port = process.env.PORT || 3001;
