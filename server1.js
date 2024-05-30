@@ -97,61 +97,18 @@ app.post('/api/reports/generate', async (req, res) => {
   }
 });
 
-app.post('/api/pingResults/equip/count', async (req, res) => {
-  try {
-    const { startDate, endDate, equipmentIds } = req.body;
-    console.log(startDate, endDate, equipmentIds);
-
-    if (!startDate || !endDate || !equipmentIds) {
-      return res.status(400).json({ error: 'Start date, end date, and equipment IDs are required' });
-    }
-
-    // Convertissez les identifiants d'équipement en ObjectId MongoDB
-    const equipmentObjectIds = equipmentIds.map(id => new mongoose.Types.ObjectId(id));
-
-    // Effectuer une recherche pour récupérer les équipements sélectionnés depuis la base de données
-    const equipments = await Equip.find({ _id: { $in: equipmentObjectIds } });
-
-    // Initialiser un objet pour stocker le nombre de pings pour chaque équipement
-    const pingCounts = {};
-
-    // Pour chaque équipement sélectionné, comptez les pings pendant la période spécifiée
-    for (const equipment of equipments) {
-      const pingCount = await PingResult.countDocuments({
-  equipment: equipment._id,
-  timestamp: { $gte: new Date(startDate), $lte: new Date(endDate) }
-});
-
-      pingCounts[equipment._id] = pingCount;
-    }
-
-    res.json({ pingCounts });
-  } catch (error) {
-    if (error.name === 'MongoError') {
-      console.error('MongoDB Error:', error);
-      res.status(500).json({ error: 'MongoDB Error' });
-    } else {
-      console.error('Unexpected Error:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  }
-});
-
 app.get('/api/pingResults/stats/:equipmentId', async (req, res) => {
-  const { startDate, endDate, threshold, attr} = req.query; // Récupérer les valeurs de la requête
-  const { equipmentId } = req.params; // Récupérer l'ID de l'équipement
-  
+  const { startDate, endDate, threshold, attr } = req.query; 
+  const { equipmentId } = req.params; 
 
   console.log(`Request received - Equipment ID: ${equipmentId}, Start Date: ${startDate}, End Date: ${endDate}, Data: ${attr}, Threshold: ${threshold}`);
 
   try {
-    // Vérifier la présence et la validité des données de requête
     if (!equipmentId || !startDate || !endDate || !threshold || !attr) {
       console.log('Missing or invalid request parameters:', req.query);
       return res.status(400).json({ error: 'Missing or invalid request parameters' });
     }
 
-    // Construire la requête pour la base de données
     const query = {
       equipment: equipmentId,
       timestamp: { $gte: new Date(startDate), $lte: new Date(endDate) }
@@ -159,47 +116,51 @@ app.get('/api/pingResults/stats/:equipmentId', async (req, res) => {
 
     console.log('Query:', query);
 
-    // Exécuter la requête et récupérer les résultats
     const pingResults = await PingResult.find(query);
 
     console.log('Ping Results:', pingResults);
 
-    // Initialiser les compteurs pour les statistiques
     let stats = { green: 0, orange: 0, red: 0 };
 
-    // Calculer les seuils d'alerte et de pré-alerte
-    const warningThreshold = parseFloat(threshold) * 0.9; // Seuil d'avertissement est fixé à 90% du seuil principal
+    const warningThreshold = parseFloat(threshold) * 0.9; 
 
     console.log('Warning Threshold:', warningThreshold);
 
-    // Calculer les statistiques
+    const getAverage = (numbers) => {
+      if (!Array.isArray(numbers) || numbers.length === 0) return NaN;
+      const validNumbers = numbers.filter(value => !isNaN(value));
+      if (validNumbers.length === 0) return NaN;
+      return validNumbers.reduce((acc, cur) => acc + cur, 0) / validNumbers.length;
+    };
 
-// Utilisez `pingResults` pour accéder aux résultats de la requête
-pingResults.forEach(result => {
-  const value = result[attr]; // Utilisez `result` pour accéder à la valeur de l'attribut
-  console.log(`Processing result - Data: ${attr}, Value: ${value}`);
-  if (value >= parseFloat(threshold)) {
-    console.log('Value is above threshold');
-    stats.red++;
-  } else if (value >= warningThreshold && value < parseFloat(threshold)) {
-    console.log('Value is above warning threshold but below main threshold');
-    stats.orange++;
-  } else {
-    console.log('Value is within normal range');
-    stats.green++;
-  }
-});
+    pingResults.forEach(result => {
+      let value = result[attr];
+      if (Array.isArray(value)) {
+        value = getAverage(value);
+      }
 
+      console.log(`Processing result - Data: ${attr}, Value: ${value}`);
+      if (value >= parseFloat(threshold)) {
+        console.log('Value is above threshold');
+        stats.red++;
+      } else if (value >= warningThreshold && value < parseFloat(threshold)) {
+        console.log('Value is above warning threshold but below main threshold');
+        stats.orange++;
+      } else {
+        console.log('Value is within normal range');
+        stats.green++;
+      }
+    });
 
     console.log('Final Stats:', stats);
 
-    // Renvoyer les statistiques au format JSON
     res.json(stats);
   } catch (error) {
     console.error('Error fetching ping results:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 // Route pour filtrer les interventions en fonction des équipements sélectionnés et de la plage de dates
