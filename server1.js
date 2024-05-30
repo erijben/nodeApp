@@ -141,9 +141,10 @@ app.get('/api/pingResults/stats/:equipmentId', async (req, res) => {
 
       console.log(`Processing result - Data: ${attr}, Value: ${value}`);
 
-      // Check if the attribute is minimumTime, maximumTime, or averageTime and if value is 0
-      if (['minimumTime', 'maximumTime', 'averageTime'].includes(attr) && value === 0) {
-        console.log('Value is 0 for a critical time attribute');
+      // Check for empty or NaN values for TTL and latency
+      if ((['TTL', 'latency'].includes(attr) && (value === 0 || isNaN(value))) ||
+          (['minimumTime', 'maximumTime', 'averageTime'].includes(attr) && value === 0)) {
+        console.log(`Value is invalid for a critical attribute ${attr}`);
         stats.red++;
       } else if (value >= parseFloat(threshold)) {
         console.log('Value is above threshold');
@@ -165,8 +166,6 @@ app.get('/api/pingResults/stats/:equipmentId', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
-
 
 
 // Route pour filtrer les interventions en fonction des équipements sélectionnés et de la plage de dates
