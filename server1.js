@@ -600,7 +600,7 @@ app.post('/api/reports/generateDashboardPDF', async (req, res) => {
   res.json({ pdfUrl: `http://localhost:3001/path/to/reports/${path.basename(filePath)}` });
 });
 
-/*const EMAIL_USERNAME = 'erijbenamor6@gmail.com'; // Remplacez par l'email réel
+const EMAIL_USERNAME = 'erijbenamor6@gmail.com'; // Remplacez par l'email réel
 const EMAIL_PASSWORD = 'jvpk gsdc nlhm ldbg';
 
 const transporter = nodemailer.createTransport({
@@ -694,11 +694,11 @@ const sendAlertEmail = (to, equipmentName, equipmentId, dataType, currentValue, 
       console.log(`E-mail d'alerte envoyé à ${to} avec succès: ${info.response}`);
     }
   });
-};*///
+};
  //Planifier la surveillance pour s'exécuter à un intervalle régulier
-//cron.schedule('*/30    ', () => { // Toutes les 5 minutes par exemple
-//monitorAndAlert();
-//});
+cron.schedule('*/3 * * * *', () => { // Toutes les 5 minutes par exemple
+monitorAndAlert();
+});
 
 app.get('/api/pingResults', async (req, res) => {
   try {

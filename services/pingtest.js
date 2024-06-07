@@ -244,7 +244,7 @@ async function checkEquipmentStatus(equipId) {
 }
 
 // Planifiez une tâche cron pour vérifier l'état de tous les équipements toutes les 10 minutes
-cron.schedule('*/1 * * * *', async () => {
+cron.schedule('*/50 * * * *', async () => {
   const allEquipments = await EquipModel.find();
   for (const equip of allEquipments) {
     const { status, message, equipmentName } = await checkEquipmentStatus(equip._id);
